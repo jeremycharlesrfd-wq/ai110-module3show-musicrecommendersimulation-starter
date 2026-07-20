@@ -22,10 +22,60 @@ W_MOOD = 1.5
 W_ENERGY = 1.0
 W_ACOUSTIC = 1.0
 
+# ---------------------------------------------------------------------------
+# Diversity penalty: a good-taste match alone can flood the top list with the
+# same artist (or genre) over and over. To keep the results varied, a song is
+# penalized *while the list is being built* for every song already chosen that
+# shares its artist or genre. The first appearance of an artist/genre is free;
+# each repeat costs more. Because this depends on what is already in the list,
+# it lives in the ranking pass (recommend_songs / Recommender.recommend), not
+# in the per-song score.
+#
+#   artist repeat .... W_ARTIST_PENALTY x (# already-chosen songs, same artist)
+#   genre repeat ..... W_GENRE_PENALTY  x (# already-chosen songs, same genre)
+#
+# The artist penalty is the stronger lever (artist is otherwise unscored); the
+# genre penalty is deliberately smaller than W_GENRE so one repeat nudges the
+# list toward variety without fully cancelling a genuine genre match.
+# ---------------------------------------------------------------------------
+W_ARTIST_PENALTY = 2.0
+W_GENRE_PENALTY = 1.0
+
 
 def _closeness(target: float, actual: float) -> float:
     """Proximity on a 0-1 scale: 1.0 == identical, floored at 0 (no penalty)."""
     return max(0.0, 1.0 - abs(target - actual))
+
+
+def _diversity_penalty(
+    artist: str,
+    genre: str,
+    chosen_artists: List[str],
+    chosen_genres: List[str],
+) -> Tuple[float, List[str]]:
+    """
+    Points to subtract from a candidate given the artists/genres already chosen.
+
+    chosen_artists / chosen_genres list the artist and genre of every song
+    already placed in the top results. Returns (penalty, reasons); reasons is
+    empty when the candidate adds a fresh artist and genre.
+    """
+    penalty = 0.0
+    reasons: List[str] = []
+
+    artist_repeats = chosen_artists.count(artist)
+    if artist_repeats:
+        points = W_ARTIST_PENALTY * artist_repeats
+        penalty += points
+        reasons.append(f"artist repeat (-{points:.1f})")
+
+    genre_repeats = chosen_genres.count(genre)
+    if genre_repeats:
+        points = W_GENRE_PENALTY * genre_repeats
+        penalty += points
+        reasons.append(f"genre repeat (-{points:.1f})")
+
+    return penalty, reasons
 
 
 @dataclass
@@ -98,9 +148,32 @@ class Recommender:
         return score, reasons
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        """Return the top-k Songs for a user, highest score first."""
-        ranked = sorted(self.songs, key=lambda s: self._score(user, s)[0], reverse=True)
-        return ranked[:k]
+        """
+        Return the top-k Songs for a user, highest score first.
+
+        Selection is greedy so the diversity penalty can apply: songs are ranked
+        by base score, then chosen one at a time, each time re-ranking the
+        remaining songs by (base score - diversity penalty) so an artist or
+        genre already in the list is discouraged from repeating.
+        """
+        remaining = sorted(self.songs, key=lambda s: self._score(user, s)[0], reverse=True)
+
+        results: List[Song] = []
+        chosen_artists: List[str] = []
+        chosen_genres: List[str] = []
+        while remaining and len(results) < k:
+            best_i = max(
+                range(len(remaining)),
+                key=lambda i: self._score(user, remaining[i])[0]
+                - _diversity_penalty(
+                    remaining[i].artist, remaining[i].genre, chosen_artists, chosen_genres
+                )[0],
+            )
+            song = remaining.pop(best_i)
+            results.append(song)
+            chosen_artists.append(song.artist)
+            chosen_genres.append(song.genre)
+        return results
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
         """Return a human-readable string naming why this song scored as it did."""
@@ -173,12 +246,42 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tup
     Functional implementation of the recommendation logic.
     Required by src/main.py
 
-    Returns up to k (song_dict, score, explanation) tuples sorted by score.
+    Returns up to k (song_dict, score, explanation) tuples. Selection is greedy
+    so the diversity penalty (see _diversity_penalty) can apply: the returned
+    score is the base score minus any penalty, and the explanation names the
+    "artist repeat"/"genre repeat" deductions when a song is chosen despite
+    sharing an artist or genre already in the list.
     """
-    scored = [
-        (song, score, ", ".join(reasons))
+    # Base score + reasons once per song; highest base score first so the greedy
+    # pass below considers the strongest candidates early.
+    remaining = [
+        (song, base, reasons)
         for song in songs
-        for score, reasons in [score_song(user_prefs, song)]
+        for base, reasons in [score_song(user_prefs, song)]
     ]
-    scored.sort(key=lambda item: item[1], reverse=True)
-    return scored[:k]
+    remaining.sort(key=lambda item: item[1], reverse=True)
+
+    results: List[Tuple[Dict, float, str]] = []
+    chosen_artists: List[str] = []
+    chosen_genres: List[str] = []
+    while remaining and len(results) < k:
+        # Re-rank what is left by score-after-penalty and take the current best.
+        # remaining is already ordered by base score, so max() keeps the first
+        # (strongest) candidate on ties.
+        best_i = max(
+            range(len(remaining)),
+            key=lambda i: remaining[i][1]
+            - _diversity_penalty(
+                remaining[i][0]["artist"], remaining[i][0]["genre"], chosen_artists, chosen_genres
+            )[0],
+        )
+        song, base, reasons = remaining.pop(best_i)
+
+        penalty, penalty_reasons = _diversity_penalty(
+            song["artist"], song["genre"], chosen_artists, chosen_genres
+        )
+        explanation = ", ".join(reasons + penalty_reasons)
+        results.append((song, base - penalty, explanation))
+        chosen_artists.append(song["artist"])
+        chosen_genres.append(song["genre"])
+    return results
