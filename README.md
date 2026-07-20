@@ -168,9 +168,10 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
+
 ```
-Top recommendations
-===================
+Top recommendations for: Chill Lofi
+===================================
 
 1. Library Rain — Paper Lanterns   (score: 6.31)
      • genre match (+3.0)
@@ -197,6 +198,97 @@ Top recommendations
 5. Requiem for Dawn — String Theory Ensemble   (score: 1.88)
      • energy fit (+0.93)
      • acoustic fit (+0.95)
+
+```
+
+```
+Top recommendations for: High-Energy Pop
+========================================
+
+1. Sunrise City — Neon Echo   (score: 6.24)
+     • genre match (+3.0)
+     • mood match (+1.5)
+     • energy fit (+0.92)
+     • acoustic fit (+0.82)
+
+2. Gym Hero — Max Pulse   (score: 4.92)
+     • genre match (+3.0)
+     • energy fit (+0.97)
+     • acoustic fit (+0.95)
+
+3. Rooftop Lights — Indigo Parade   (score: 3.01)
+     • mood match (+1.5)
+     • energy fit (+0.86)
+     • acoustic fit (+0.65)
+
+4. Basslight — Deep Circuit   (score: 1.91)
+     • energy fit (+0.95)
+     • acoustic fit (+0.96)
+
+5. Iron Verdict — Grave Meridian   (score: 1.91)
+     • energy fit (+0.93)
+     • acoustic fit (+0.98)
+
+```
+
+
+```
+Top recommendations for: Deep Intense Rock
+==========================================
+
+1. Storm Runner — Voltline   (score: 6.39)
+     • genre match (+3.0)
+     • mood match (+1.5)
+     • energy fit (+0.99)
+     • acoustic fit (+0.90)
+
+2. Gym Hero — Max Pulse   (score: 3.44)
+     • mood match (+1.5)
+     • energy fit (+0.99)
+     • acoustic fit (+0.95)
+
+3. Basslight — Deep Circuit   (score: 1.93)
+     • energy fit (+0.97)
+     • acoustic fit (+0.96)
+
+4. Iron Verdict — Grave Meridian   (score: 1.93)
+     • energy fit (+0.95)
+     • acoustic fit (+0.98)
+
+5. Concrete Jungle — Ill Cadence   (score: 1.85)
+     • energy fit (+0.93)
+     • acoustic fit (+0.92)
+
+```
+
+
+
+```
+Top recommendations for: Late-Night Jazz
+========================================
+
+1. Coffee Shop Stories — Slow Stereo   (score: 6.37)
+     • genre match (+3.0)
+     • mood match (+1.5)
+     • energy fit (+0.98)
+     • acoustic fit (+0.89)
+
+2. Requiem for Dawn — String Theory Ensemble   (score: 1.93)
+     • energy fit (+0.98)
+     • acoustic fit (+0.95)
+
+3. Library Rain — Paper Lanterns   (score: 1.86)
+     • energy fit (+1.00)
+     • acoustic fit (+0.86)
+
+4. Spacewalk Thoughts — Orbit Bloom   (score: 1.85)
+     • energy fit (+0.93)
+     • acoustic fit (+0.92)
+
+5. Focus Flow — LoRoom   (score: 1.73)
+     • energy fit (+0.95)
+     • acoustic fit (+0.78)
+
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->

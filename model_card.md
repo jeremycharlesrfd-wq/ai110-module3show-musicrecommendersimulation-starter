@@ -2,73 +2,63 @@
 
 ## 1. Model Name  
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
+**SongRec 2.0**  
 
 ---
 
 ## 2. Intended Use  
 
-Describe what your recommender is designed to do and who it is for. 
+It suggests 5 songs that fit a listener's taste.
 
-Prompts:  
+It is built for the classroom, not for real users.
 
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+It assumes the user knows their favorite genre, mood, energy level, and whether they like acoustic music.
 
 ---
 
 ## 3. How the Model Works  
 
-Explain your scoring approach in simple language.  
+Each song has a genre, a mood, an energy level, and how acoustic it is.
 
-Prompts:  
+The user says what they like for each of those.
 
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
+The model gives a song points when it matches. Genre is worth the most (3 points), then mood (1.5), then energy and acoustic (1 point each).
 
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+It adds up the points and picks the 5 songs with the highest scores.
+
+I kept the starter scoring recipe.
 
 ---
 
 ## 4. Data  
 
-Describe the dataset the model uses.  
+The catalog has 19 songs.
 
-Prompts:  
+There are 16 genres, from pop and rock to jazz, metal, and blues.
 
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+Moods range from happy and chill to sad and aggressive.
+
+I added 9 songs to the starter set, which had 10. The new ones brought in genres like hip hop, latin, folk, classical, reggae, metal, and blues.
+
+Most genres still have only one song, so niche tastes have little to match.
 
 ---
 
 ## 5. Strengths  
 
-Where does your system seem to work well  
+It works well for pop and lofi fans, since those genres have the most songs.
 
-Prompts:  
+It matches loud, high-energy tastes to loud songs, and calm tastes to soft ones.
 
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+The energy and acoustic scores felt right in my tests.
+
+Every pick comes with a reason, so you can see why it was chosen.
 
 ---
 
 ## 6. Limitations and Bias 
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+Genre is weighted very heavily, but the catalog only has depth in *pop* and *lofi* (16 genres across 19 songs). So a fan of any niche genre gets one real genre match at the top and generic filler below it. When I tested a blues fan and a world-music fan, their top picks differed but ranks 2–5 were identical — the same mid-energy filler songs. The system therefore serves majority-genre users far better than minority-genre ones, a bias rooted in the large genre weight meeting a long-tailed dataset.
 
 ---
 
@@ -76,36 +66,36 @@ Prompts:
 
 How you checked whether the recommender behaved as expected. 
 
-Prompts:  
+I compared the top-5 lists for all four listeners: **High-Energy Pop**, **Chill Lofi**, **Deep Intense Rock**, and **Late-Night Jazz**.
 
-- Which user profiles you tested  
-- What you looked for in the recommendations  
-- What surprised you  
-- Any simple tests or comparisons you ran  
+Comparing each pair (what changed, and why it makes sense):
 
-No need for numeric metrics unless you created some.
+- **Pop vs. Lofi:** near-opposites, almost no overlap — Pop gets loud electronic tracks, Lofi gets soft acoustic ones.
+- **Pop vs. Rock:** both want high energy, so their lists look alike and even share a song, just for different reasons (one for genre, one for mood).
+- **Pop vs. Jazz:** opposites (loud/electronic vs. soft/acoustic), no overlap.
+- **Lofi vs. Rock:** opposites on energy, no overlap.
+- **Lofi vs. Jazz:** the most similar pair — both want low energy and acoustic, so they share most of their list and differ mainly at #1.
+- **Rock vs. Jazz:** opposites, no overlap.
+
+**What surprised me:** a single song can rank high for two different listeners for completely different reasons — it matches one person's genre and another person's mood — so one versatile track shows up everywhere. It also surprised me that Lofi and Jazz are almost interchangeable: the system can't really tell two mellow, acoustic listeners apart.
+
 
 ---
 
 ## 8. Future Work  
 
-Ideas for how you would improve the model next.  
+Add more songs so niche genres have real matches.
 
-Prompts:  
+Use more song features, like tempo or danceability.
 
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+Let users pick more than one favorite genre or mood.
+
+Write clearer explanations for each pick.
 
 ---
 
 ## 9. Personal Reflection  
 
-A few sentences about your experience.  
+The biggest thing I learned is how much the weights control everything. Genre is worth the most, so it decides the whole list. Changing one weight shifts every result.
 
-Prompts:  
-
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+That made me more skeptical of apps like Spotify. Now I see how their choices about what to weigh can quietly bias what I hear. The picks feel personal, but they still come from someone's rules.
